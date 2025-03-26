@@ -1,6 +1,9 @@
 let score = 0;
 let particles = [];
 let explosionSound;
+let startColor;
+let endColor;
+let lerpAmount = 0;
 
 function preload() {
   explosionSound = loadSound('assets/sounds/explosion.mp3');
@@ -8,7 +11,8 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  background(10);
+  startColor = color(0, 0, 0); // Начальный черный цвет
+  endColor = color(255, 100, 100); // Конечный цвет (можно изменить на любой другой)
   textAlign(CENTER);
   textSize(32);
 }
@@ -18,7 +22,14 @@ function windowResized() {
 }
 
 function draw() {
-  background(10, 10, 30, 70);
+  // Плавный переход цветов фона
+  let currentColor = lerpColor(startColor, endColor, lerpAmount);
+  background(currentColor);
+  
+  // Плавное изменение переменной lerpAmount
+  lerpAmount += 0.001; // Чем меньше значение, тем медленнее переход
+  if (lerpAmount > 1) lerpAmount = 0;  // Когда достигает конца, начинаем заново
+
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
     particles[i].show();
@@ -26,6 +37,7 @@ function draw() {
       particles.splice(i, 1);
     }
   }
+
   fill(255, 200);
   text(`Score: ${score}`, width/2, 50);
 }
@@ -41,27 +53,27 @@ function mousePressed() {
 function createExplosion(x, y) {
   let baseHue = random(360);
   
-  // Искры с ускорением (более быстрые, яркие)
-  for (let i = 0; i < 120; i++) {
+  // Мягкие искры
+  for (let i = 0; i < 80; i++) {  // Уменьшил количество искр
     particles.push(new Particle(x, y, baseHue, 'spark'));
   }
 
-  // Глобальные волны света (с увеличением радиуса)
+  // Плавные волны света
   for (let i = 0; i < 8; i++) {
     particles.push(new Particle(x, y, baseHue, 'wave'));
   }
 
-  // Молнии (вдохновлены вращающимися кольцами, но добавлен случайный угол)
+  // Молнии
   for (let i = 0; i < 5; i++) {
     particles.push(new Particle(x, y, baseHue, 'lightning'));
   }
 
-  // Плотный дым с эффектом исчезновения
+  // Дым
   for (let i = 0; i < 60; i++) {
     particles.push(new Particle(x, y, baseHue, 'smoke'));
   }
 
-  // Мерцающие звезды и светящиеся частицы
+  // Звезды
   for (let i = 0; i < 30; i++) {
     particles.push(new Particle(x, y, baseHue, 'star'));
   }
