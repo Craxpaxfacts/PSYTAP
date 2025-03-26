@@ -40,27 +40,33 @@ function mousePressed() {
 
 function createExplosion(x, y) {
   let baseHue = random(360);
-  // Искры
-  for (let i = 0; i < 100; i++) {
+  
+  // Искры с ускорением (более быстрые, яркие)
+  for (let i = 0; i < 120; i++) {
     particles.push(new Particle(x, y, baseHue, 'spark'));
   }
-  // Волны света
-  for (let i = 0; i < 5; i++) {
+
+  // Глобальные волны света (с увеличением радиуса)
+  for (let i = 0; i < 8; i++) {
     particles.push(new Particle(x, y, baseHue, 'wave'));
   }
-  // Вращающиеся кольца
-  for (let i = 0; i < 3; i++) {
-    particles.push(new Particle(x, y, baseHue, 'ring'));
+
+  // Молнии (вдохновлены вращающимися кольцами, но добавлен случайный угол)
+  for (let i = 0; i < 5; i++) {
+    particles.push(new Particle(x, y, baseHue, 'lightning'));
   }
-  // Дымовые шлейфы
-  for (let i = 0; i < 40; i++) {
+
+  // Плотный дым с эффектом исчезновения
+  for (let i = 0; i < 60; i++) {
     particles.push(new Particle(x, y, baseHue, 'smoke'));
   }
-  // Мерцающие звезды
-  for (let i = 0; i < 20; i++) {
+
+  // Мерцающие звезды и светящиеся частицы
+  for (let i = 0; i < 30; i++) {
     particles.push(new Particle(x, y, baseHue, 'star'));
   }
 }
+
 
 class Particle {
   constructor(x, y, baseHue, type) {
@@ -70,33 +76,33 @@ class Particle {
     this.angle = random(TWO_PI);
     
     if (type === 'spark') {
-      this.size = random(3, 10);
-      this.vx = random(-6, 6);
-      this.vy = random(-6, 6);
+      this.size = random(4, 12);
+      this.vx = random(-10, 10);
+      this.vy = random(-10, 10);
       this.life = random(150, 255);
     } else if (type === 'wave') {
       this.size = 0;
       this.vx = 0;
       this.vy = 0;
       this.life = 200;
-      this.speed = random(2, 4);
-    } else if (type === 'ring') {
-      this.size = random(20, 40);
-      this.vx = 0;
-      this.vy = 0;
-      this.life = 150;
-      this.rotationSpeed = random(-0.05, 0.05);
-    } else if (type === 'smoke') {
-      this.size = random(10, 30);
-      this.vx = random(-2, 2);
-      this.vy = random(-2, 2);
-      this.life = random(100, 200);
-    } else if (type === 'star') {
-      this.size = random(5, 15);
+      this.speed = random(3, 6);
+    } else if (type === 'lightning') {
+      this.size = random(2, 6);
       this.vx = random(-3, 3);
       this.vy = random(-3, 3);
-      this.life = random(50, 150);
-      this.twinkle = random(0.5, 1);
+      this.life = random(100, 150);
+      this.speed = random(5, 10);
+    } else if (type === 'smoke') {
+      this.size = random(15, 40);
+      this.vx = random(-2, 2);
+      this.vy = random(-2, 2);
+      this.life = random(120, 220);
+    } else if (type === 'star') {
+      this.size = random(8, 18);
+      this.vx = random(-5, 5);
+      this.vy = random(-5, 5);
+      this.life = random(60, 180);
+      this.twinkle = random(0.4, 1);
     }
     
     this.hue = (baseHue + random(-50, 50)) % 360;
@@ -108,24 +114,25 @@ class Particle {
     if (this.type === 'spark') {
       this.x += this.vx;
       this.y += this.vy;
-      this.vx *= 0.96;
-      this.vy *= 0.96;
+      this.vx *= 0.92;
+      this.vy *= 0.92;
       this.life -= 4;
       this.size *= 0.98;
     } else if (this.type === 'wave') {
       this.size += this.speed;
       this.life -= 3;
-    } else if (this.type === 'ring') {
-      this.size += 1;
-      this.angle += this.rotationSpeed;
-      this.life -= 2;
+    } else if (this.type === 'lightning') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life -= 5;
+      this.size *= 0.98;
     } else if (this.type === 'smoke') {
       this.x += this.vx;
       this.y += this.vy;
       this.vx *= 0.95;
       this.vy *= 0.95;
       this.life -= 2;
-      this.size += 0.2;
+      this.size += 0.3;
     } else if (this.type === 'star') {
       this.x += this.vx;
       this.y += this.vy;
@@ -141,30 +148,25 @@ class Particle {
     colorMode(HSL);
     
     if (this.type === 'spark') {
+      fill(this.hue, this.saturation, this.lightness, this.life / 255);
       for (let i = 0; i < 3; i++) {
         let alpha = this.life * (1 - i * 0.4);
-        fill(this.hue, this.saturation, this.lightness, alpha/255);
         circle(this.x, this.y, this.size * (1 + i * 0.5));
       }
     } else if (this.type === 'wave') {
       noFill();
-      stroke(this.hue, this.saturation, this.lightness, this.life/255);
-      strokeWeight(3);
+      stroke(this.hue, this.saturation, this.lightness, this.life / 255);
+      strokeWeight(4);
       circle(this.x, this.y, this.size);
-    } else if (this.type === 'ring') {
-      push();
-      translate(this.x, this.y);
-      rotate(this.angle);
-      noFill();
-      stroke(this.hue, this.saturation, this.lightness, this.life/255);
-      strokeWeight(2);
-      ellipse(0, 0, this.size, this.size * 0.5);
-      pop();
+    } else if (this.type === 'lightning') {
+      stroke(this.hue, this.saturation, this.lightness, this.life / 255);
+      strokeWeight(3);
+      line(this.x, this.y, this.x + random(-30, 30), this.y + random(-30, 30));
     } else if (this.type === 'smoke') {
-      fill(this.hue, this.saturation, this.lightness, this.life/255);
+      fill(this.hue, this.saturation, this.lightness, this.life / 255);
       circle(this.x, this.y, this.size);
     } else if (this.type === 'star') {
-      fill(this.hue, this.saturation, this.lightness * this.twinkle, this.life/255);
+      fill(this.hue, this.saturation, this.lightness * this.twinkle, this.life / 255);
       beginShape();
       for (let i = 0; i < 5; i++) {
         let angle = TWO_PI / 5 * i;
@@ -178,6 +180,7 @@ class Particle {
       }
       endShape(CLOSE);
     }
+
     colorMode(RGB);
   }
   
