@@ -1,26 +1,22 @@
 let score = 0;
 let particles = [];
 let explosionSound;
-let backgroundMusic;
-let startColor;
-let endColor;
-let lerpAmount = 0;
+let backgroundSound;  // Переменная для фоновой музыки
 
 function preload() {
-  explosionSound = loadSound('assets/sounds/explosion.mp3'); // Загрузка звука взрыва
-  backgroundMusic = loadSound('assets/music/background.mp3'); // Загрузка фоновой музыки
+  explosionSound = loadSound('assets/sounds/explosion.mp3');
+  backgroundSound = loadSound('assets/sounds/background.mp3');  // Загружаем фоновую музыку
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  startColor = color(0, 0, 0); // Начальный черный цвет
-  endColor = color(255, 100, 100); // Конечный цвет
+  background(10);
   textAlign(CENTER);
   textSize(32);
 
-  // Включаем фоновую музыку, если она еще не играет
-  if (!backgroundMusic.isPlaying()) {
-    backgroundMusic.loop(); // Воспроизводим музыку в цикле
+  // Запускаем фоновую музыку, если она не играет
+  if (backgroundSound && !backgroundSound.isPlaying()) {
+    backgroundSound.loop();  // Музыка будет играть в цикле
   }
 }
 
@@ -29,13 +25,11 @@ function windowResized() {
 }
 
 function draw() {
-  // Плавный переход цветов фона
-  let currentColor = lerpColor(startColor, endColor, lerpAmount);
-  background(currentColor);
-  
-  // Плавное изменение переменной lerpAmount
-  lerpAmount += 0.001; // Чем меньше значение, тем медленнее переход
-  if (lerpAmount > 1) lerpAmount = 0;  // Когда достигает конца, начинаем заново
+  // Плавное изменение фона
+  let r = map(sin(frameCount * 0.001), -1, 1, 0, 255);
+  let g = map(cos(frameCount * 0.001), -1, 1, 0, 255);
+  let b = map(sin(frameCount * 0.003), -1, 1, 0, 255);
+  background(r, g, b, 70);  // Меняющийся цвет фона
 
   for (let i = particles.length - 1; i >= 0; i--) {
     particles[i].update();
@@ -46,7 +40,7 @@ function draw() {
   }
 
   fill(255, 200);
-  text(`Score: ${score}`, width / 2, 50);
+  text(`Score: ${score}`, width/2, 50);
 }
 
 function mousePressed() {
@@ -59,32 +53,33 @@ function mousePressed() {
 
 function createExplosion(x, y) {
   let baseHue = random(360);
-  
-  // Мягкие искры
-  for (let i = 0; i < 80; i++) {  // Уменьшил количество искр
+
+  // Искры с ускорением (более быстрые, яркие)
+  for (let i = 0; i < 120; i++) {
     particles.push(new Particle(x, y, baseHue, 'spark'));
   }
 
-  // Плавные волны света
+  // Глобальные волны света (с увеличением радиуса)
   for (let i = 0; i < 8; i++) {
     particles.push(new Particle(x, y, baseHue, 'wave'));
   }
 
-  // Молнии
+  // Молнии (вдохновлены вращающимися кольцами, но добавлен случайный угол)
   for (let i = 0; i < 5; i++) {
     particles.push(new Particle(x, y, baseHue, 'lightning'));
   }
 
-  // Дым
+  // Плотный дым с эффектом исчезновения
   for (let i = 0; i < 60; i++) {
     particles.push(new Particle(x, y, baseHue, 'smoke'));
   }
 
-  // Звезды
+  // Мерцающие звезды и светящиеся частицы
   for (let i = 0; i < 30; i++) {
     particles.push(new Particle(x, y, baseHue, 'star'));
   }
 }
+
 
 class Particle {
   constructor(x, y, baseHue, type) {
