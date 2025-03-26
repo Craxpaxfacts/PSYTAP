@@ -1,160 +1,118 @@
-let particles = [];
-let colors;
 let score = 0;
-let currentExplosionColor;
+let particles = [];
 let explosionSound;
 
-const PARTICLES_PER_CLICK = 30;
-const MAX_PARTICLES = 500;
-
 function preload() {
-  // Загрузка звукового файла
   explosionSound = loadSound('assets/sounds/explosion.mp3');
 }
 
-// --- Setup ---
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  colorMode(RGB);
-  colors = [
-    color(255, 0, 127), color(0, 255, 127), color(127, 0, 255),
-    color(255, 255, 0), color(0, 127, 255), color(0, 255, 255),
-    color(255, 127, 0)
-  ];
-  background(0);
-  currentExplosionColor = random(colors);
+  background(10);
+  textAlign(CENTER);
+  textSize(32);
 }
 
-// --- Draw ---
-function draw() {
-  background(0, 20);
-  blendMode(ADD); // Яркий неон
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
 
+function draw() {
+  background(10, 10, 30, 70);
   for (let i = particles.length - 1; i >= 0; i--) {
-    let p = particles[i];
-    p.update();
-    p.show();
-    if (p.isFinished()) {
+    particles[i].update();
+    particles[i].show();
+    if (particles[i].isFinished()) {
       particles.splice(i, 1);
     }
   }
-
-  blendMode(BLEND); // Нормальный режим для текста
-  drawScore();
-}
-
-// --- Обработка ввода ---
-function mousePressed() {
-  triggerExplosion(mouseX, mouseY);
-}
-
-function mouseDragged() {
-  if (frameCount % 3 === 0) {
-    triggerExplosion(mouseX, mouseY);
-  }
-}
-
-function touchStarted() {
-  if (touches.length > 0) {
-    triggerExplosion(touches[0].x, touches[0].y);
-  }
-  return false;
-}
-
-function touchMoved() {
-  if (touches.length > 0 && frameCount % 3 === 0) {
-    triggerExplosion(touches[0].x, touches[0].y);
-  }
-  return false;
-}
-
-// --- Логика Взрыва ---
-function triggerExplosion(x, y) {
-  currentExplosionColor = random(colors);
-
-  let count = 0;
-  while(count < PARTICLES_PER_CLICK && particles.length < MAX_PARTICLES) {
-    particles.push(new Particle(x, y, currentExplosionColor));
-    count++;
-  }
-
-  while (particles.length > MAX_PARTICLES) {
-    particles.shift();
-  }
-
-  score += 5;
-
-  // Воспроизведение звука при каждом взрыве
-  if (explosionSound.isPlaying()) {
-    explosionSound.stop();  // Если звук уже играет, остановим его
-  }
-  explosionSound.play();  // Запуск нового звука
-}
-
-// --- Отрисовка Счета ---
-function drawScore() {
   fill(255, 200);
-  noStroke();
-  textSize(28);
-  textAlign(RIGHT, TOP);
-  text(`Score: ${score}`, width - 20, 20);
+  text(`Score: ${score}`, width/2, 50);
 }
 
-// --- Класс Частицы ---
+function mousePressed() {
+  score++;
+  createExplosion(mouseX, mouseY);
+  if (explosionSound) {
+    explosionSound.play();
+  }
+}
+
+function createExplosion(x, y) {
+  let baseHue = random(360);
+  for (let i = 0; i < 80; i++) {
+    particles.push(new Particle(x, y, baseHue, 'spark'));
+  }
+  for (let i = 0; i < 30; i++) {
+    particles.push(new Particle(x, y, baseHue, 'smoke'));
+  }
+  for (let i = 0; i < 20; i++) {
+    particles.push(new Particle(x, y, baseHue, 'flash'));
+  }
+}
+
 class Particle {
-  constructor(x, y, explosionColor) {
-    this.pos = createVector(x, y);
-    let angle = random(TWO_PI);
-    let speed = random(1, 3);  // Медленное движение
-    this.vel = p5.Vector.fromAngle(angle).mult(speed);
-    this.lifespan = random(300, 800); // Долгий срок жизни
-    this.maxLife = this.lifespan;
-    this.baseSize = random(15, 50); // Большие частицы
-    this.size = this.baseSize;
-    this.col = explosionColor;
-    this.rotation = random(TWO_PI);
-    this.rotationSpeed = random(-0.005, 0.005);  // Медленное вращение
-    this.drag = random(0.995, 0.999);  // Очень медленное замедление
-    this.angleVariation = random(-0.02, 0.02); // Маленькие отклонения
-    this.colorShiftSpeed = random(0.002, 0.01); // Плавное изменение цвета
+  constructor(x, y, baseHue, type) {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    if (type === 'spark') {
+      this.size = random(4, 12);
+      this.vx = random(-5, 5);
+      this.vy = random(-5, 5);
+      this.life = random(150, 255);
+    } else if (type === 'smoke') {
+      this.size = random(10, 25);
+      this.vx = random(-2, 2);
+      this.vy = random(-2, 2);
+      this.life = random(100, 200);
+    } else if (type === 'flash') {
+      this.size = random(15, 30);
+      this.vx = random(-1, 1);
+      this.vy = random(-1, 1);
+      this.life = random(50, 100);
+    }
+    this.hue = (baseHue + random(-40, 40)) % 360;
+    this.saturation = random(70, 100);
+    this.lightness = type === 'smoke' ? random(20, 40) : random(60, 100);
   }
-
+  
   update() {
-    this.vel.mult(this.drag);
-    this.pos.add(this.vel);
-    this.lifespan -= 1;
-    this.size = this.baseSize * max(0, this.lifespan / this.maxLife); // Уменьшение размера
-    this.rotation += this.rotationSpeed;
-    this.vel.add(p5.Vector.fromAngle(random(TWO_PI)).mult(this.angleVariation)); // Разнообразие направления
-    this.col = lerpColor(this.col, random(colors), this.colorShiftSpeed); // Плавное изменение цвета
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.type === 'spark') {
+      this.vx *= 0.97;
+      this.vy *= 0.97;
+      this.life -= 4;
+      this.size *= 0.98;
+    } else if (this.type === 'smoke') {
+      this.vx *= 0.95;
+      this.vy *= 0.95;
+      this.life -= 2;
+      this.size += 0.1;
+    } else if (this.type === 'flash') {
+      this.life -= 6;
+      this.size *= 0.99;
+    }
   }
-
+  
   show() {
-    push();
-    translate(this.pos.x, this.pos.y);
-    rotate(this.rotation);
-    let r = red(this.col);
-    let g = green(this.col);
-    let b = blue(this.col);
-    let lifeRatio = max(0, this.lifespan / this.maxLife);
-    let alpha = map(lifeRatio * lifeRatio, 0, 1, 0, 255);
     noStroke();
-    fill(r, g, b, alpha * 0.4);
-    ellipse(0, 0, this.size * 2, this.size * 1.5);  // Плавные контуры
-    fill(r, g, b, alpha * 0.7);
-    ellipse(0, 0, this.size * 1.7, this.size * 1.3);
-    fill(r, g, b, alpha);
-    ellipse(0, 0, this.size * 1.4, this.size);
-    pop();
+    colorMode(HSL);
+    if (this.type === 'smoke') {
+      fill(this.hue, this.saturation, this.lightness, this.life/255);
+      circle(this.x, this.y, this.size);
+    } else {
+      for (let i = 0; i < 3; i++) {
+        let alpha = this.life * (1 - i * 0.4);
+        fill(this.hue, this.saturation, this.lightness, alpha/255);
+        circle(this.x, this.y, this.size * (1 + i * 0.6));
+      }
+    }
+    colorMode(RGB);
   }
-
+  
   isFinished() {
-    return this.lifespan < 0 || this.size < 0.5;
+    return this.life <= 0;
   }
-}
-
-// --- Window Resize ---
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  background(0);
 }
