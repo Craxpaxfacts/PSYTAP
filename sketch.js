@@ -40,7 +40,7 @@ function draw() {
   }
 
   fill(255, 200);
-  text(`Score: ${score}`, width/2, 50);
+  text(`Score: ${score}`, width / 2, 50);
 }
 
 function mousePressed() {
@@ -87,7 +87,7 @@ class Particle {
     this.y = y;
     this.type = type;
     this.angle = random(TWO_PI);
-    
+
     if (type === 'spark') {
       this.size = random(4, 12);
       this.vx = random(-10, 10);
@@ -117,12 +117,12 @@ class Particle {
       this.life = random(60, 180);
       this.twinkle = random(0.4, 1);
     }
-    
+
     this.hue = (baseHue + random(-50, 50)) % 360;
     this.saturation = random(70, 100);
     this.lightness = type === 'smoke' ? random(20, 40) : random(50, 90);
   }
-  
+
   update() {
     if (this.type === 'spark') {
       this.x += this.vx;
@@ -155,11 +155,11 @@ class Particle {
       this.twinkle = sin(frameCount * 0.1) * 0.5 + 0.5;
     }
   }
-  
+
   show() {
     noStroke();
     colorMode(HSL);
-    
+
     if (this.type === 'spark') {
       fill(this.hue, this.saturation, this.lightness, this.life / 255);
       for (let i = 0; i < 3; i++) {
@@ -196,7 +196,7 @@ class Particle {
 
     colorMode(RGB);
   }
-  
+
   isFinished() {
     return this.life <= 0;
   }
