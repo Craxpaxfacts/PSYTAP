@@ -1,20 +1,27 @@
 let score = 0;
 let particles = [];
 let explosionSound;
+let backgroundMusic;
 let startColor;
 let endColor;
 let lerpAmount = 0;
 
 function preload() {
-  explosionSound = loadSound('assets/sounds/explosion.mp3');
+  explosionSound = loadSound('assets/sounds/explosion.mp3'); // Загрузка звука взрыва
+  backgroundMusic = loadSound('assets/music/background.mp3'); // Загрузка фоновой музыки
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   startColor = color(0, 0, 0); // Начальный черный цвет
-  endColor = color(255, 100, 100); // Конечный цвет (можно изменить на любой другой)
+  endColor = color(255, 100, 100); // Конечный цвет
   textAlign(CENTER);
   textSize(32);
+
+  // Включаем фоновую музыку, если она еще не играет
+  if (!backgroundMusic.isPlaying()) {
+    backgroundMusic.loop(); // Воспроизводим музыку в цикле
+  }
 }
 
 function windowResized() {
@@ -39,7 +46,7 @@ function draw() {
   }
 
   fill(255, 200);
-  text(`Score: ${score}`, width/2, 50);
+  text(`Score: ${score}`, width / 2, 50);
 }
 
 function mousePressed() {
@@ -78,7 +85,6 @@ function createExplosion(x, y) {
     particles.push(new Particle(x, y, baseHue, 'star'));
   }
 }
-
 
 class Particle {
   constructor(x, y, baseHue, type) {
